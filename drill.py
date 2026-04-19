@@ -63,10 +63,15 @@ def train_balanced_forest(X_train, y_train, X_test, y_test,
     )
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_test)
+
+    # Cast to int to ensure pos_label=1 matches regardless of bool/int encoding
+    y_test_int = np.array(y_test).astype(int)
+    y_pred_int = np.array(y_pred).astype(int)
+
     return {
-        "precision": precision_score(y_test, y_pred),
-        "recall":    recall_score(y_test, y_pred),
-        "f1":        f1_score(y_test, y_pred),
+        "precision": precision_score(y_test_int, y_pred_int, pos_label=1),
+        "recall":    recall_score(y_test_int, y_pred_int, pos_label=1),
+        "f1":        f1_score(y_test_int, y_pred_int, pos_label=1),
     }
 
 
