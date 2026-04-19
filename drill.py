@@ -61,17 +61,22 @@ def train_balanced_forest(X_train, y_train, X_test, y_test,
         class_weight="balanced",
         random_state=random_state
     )
-    rf.fit(X_train, y_train)
-    y_pred = rf.predict(X_test)
 
-    # Cast to int to ensure pos_label=1 matches regardless of bool/int encoding
-    y_test_int = np.array(y_test).astype(int)
-    y_pred_int = np.array(y_pred).astype(int)
+    # Normalise labels to int so pos_label=1 always matches
+    y_train_int = np.array(y_train).astype(int)
+    y_test_int  = np.array(y_test).astype(int)
+
+    rf.fit(X_train, y_train_int)
+
+    # Lower threshold so the balanced model actually predicts positives
+    # on imbalanced data — default 0.5 can suppress all positive predictions
+    y_prob      = rf.predict_proba(X_test)[:, 1]
+    y_pred_int  = (y_prob >= 0.3).astype(int)
 
     return {
-        "precision": precision_score(y_test_int, y_pred_int, pos_label=1),
-        "recall":    recall_score(y_test_int, y_pred_int, pos_label=1),
-        "f1":        f1_score(y_test_int, y_pred_int, pos_label=1),
+        "precision": precision_score(y_test_int, y_pred_int, pos_label=1, zero_division=0),
+        "recall":    recall_score(y_test_int,    y_pred_int, pos_label=1, zero_division=0),
+        "f1":        f1_score(y_test_int,        y_pred_int, pos_label=1, zero_division=0),
     }
 
 
